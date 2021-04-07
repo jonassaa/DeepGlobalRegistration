@@ -145,7 +145,7 @@ class DeepGlobalRegistration:
 
     # Voxelization:
     # Maintain double type for xyz to improve numerical accuracy in quantization
-    sel = ME.utils.sparse_quantize(xyz / self.voxel_size, return_index=True)
+    _, sel = ME.utils.sparse_quantize(xyz / self.voxel_size, return_index=True)
     npts = len(sel)
 
     xyz = torch.from_numpy(xyz[sel])
@@ -160,7 +160,7 @@ class DeepGlobalRegistration:
     '''
     Step 1: extract fast and accurate FCGF feature per point
     '''
-    sinput = ME.SparseTensor(feats, coords=coords).to(self.device)
+    sinput = ME.SparseTensor(feats, coordinates=coords, device=self.device)
 
     return self.fcgf_model(sinput).F
 
@@ -207,7 +207,7 @@ class DeepGlobalRegistration:
     '''
     Step 4: predict inlier likelihood
     '''
-    sinput = ME.SparseTensor(inlier_feats, coords=coords).to(self.device)
+    sinput = ME.SparseTensor(inlier_feats, coordinates=coords, device=self.device)
     soutput = self.inlier_model(sinput)
 
     return soutput.F
@@ -317,3 +317,38 @@ class DeepGlobalRegistration:
           o3d.registration.TransformationEstimationPointToPoint()).transformation
 
     return T
+
+  def register_FCGF(self, xyz0, xyz1, inlier_thr=0.00):
+      '''
+      Main algorithm of DeepGlobalRegistration
+      '''
+      self.reg_timer.tic()
+      with torch.no_grad():
+        # Step 0: voxelize and generate sparse input
+        xyz0, coords0, feats0 = self.preprocess(xyz0)
+        xyz1, coords1, feats1 = self.preprocess(xyz1)
+
+        # Step 1: Feature extraction
+        self.feat_timer.tic()
+        fcgf_feats0 = self.fcgf_feature_extraction(feats0, coords0)
+        fcgf_feats1 = self.fcgf_feature_extraction(feats1, coords1)
+        self.feat_timer.toc()
+
+        # Step 2: Coarse correspondences
+        corres_idx0, corres_idx1 = self.fcgf_feature_matching(fcgf_feats0, fcgf_feats1)
+
+        # > Case 1: Safeguard RANSAC + (Optional) ICP
+        pcd0 = make_open3d_point_cloud(xyz0)
+        pcd1 = make_open3d_point_cloud(xyz1)
+        T = self.safeguard_registration(pcd0,
+                                        pcd1,
+                                        corres_idx0,
+                                        corres_idx1,
+                                        feats0,
+                                        feats1,
+                                        2 * self.voxel_size,
+                                        num_iterations=80000)
+        safeguard_time = self.reg_timer.toc()
+        print(f'=> Safeguard takes {safeguard_time:.2} s')
+
+      return T

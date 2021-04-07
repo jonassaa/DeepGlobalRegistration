@@ -130,6 +130,8 @@ class WeightedProcrustesTrainer:
 
     # Train and valid
     for epoch in range(self.start_epoch, self.max_epoch + 1):
+      torch.cuda.empty_cache()
+
       lr = self.scheduler.get_lr()
       logging.info(f" Epoch: {epoch}, LR: {lr}")
       self._train_epoch(epoch)
@@ -215,7 +217,8 @@ class WeightedProcrustesTrainer:
         # Inlier prediction with 6D ConvNet
         inlier_timer.tic()
         reg_sinput = ME.SparseTensor(reg_feats.contiguous(),
-                                     coords=reg_coords.int()).to(self.device)
+                                     coordinates=reg_coords.int(),
+                                     device=self.device)
         reg_soutput = self.inlier_model(reg_sinput)
         inlier_timer.toc()
 
@@ -292,10 +295,6 @@ class WeightedProcrustesTrainer:
         else:
           self.optimizer.step()
 
-      gc.collect()
-
-      torch.cuda.empty_cache()
-
       total_loss += batch_loss
       total_num += 1.0
       total_timer.toc()
@@ -313,6 +312,8 @@ class WeightedProcrustesTrainer:
 
         correspondence_accuracy = is_correct.sum() / len(is_correct)
 
+        total, free = ME.get_gpu_memory_info()
+        used = (total - free) / 1073741824.0
         stat = {
             'loss': loss_meter.avg,
             'precision': precision,
@@ -322,6 +323,7 @@ class WeightedProcrustesTrainer:
             'balanced_accuracy': balanced_accuracy,
             'f1': f1,
             'num_valid': average_valid_meter.avg,
+            'gpu_used': used,
         }
 
         for k, v in stat.items():
@@ -396,7 +398,8 @@ class WeightedProcrustesTrainer:
 
       inlier_timer.tic()
       reg_sinput = ME.SparseTensor(reg_feats.contiguous(),
-                                   coords=reg_coords.int()).to(self.device)
+                                   coordinates=reg_coords.int(),
+                                   device=self.device)
       reg_soutput = self.inlier_model(reg_sinput)
       inlier_timer.toc()
 
@@ -437,8 +440,6 @@ class WeightedProcrustesTrainer:
       fn += (~pred_on_pos).sum().item()
 
       num_data += 1
-      torch.cuda.empty_cache()
-
       if batch_idx % self.config.stat_freq == 0:
         precision = tp / (tp + fp + eps)
         recall = tp / (tp + fn + eps)
@@ -630,10 +631,10 @@ class WeightedProcrustesTrainer:
   def generate_inlier_input(self, xyz0, xyz1, iC0, iC1, iF0, iF1, len_batch, pos_pairs):
     # pairs consist of (xyz1 index, xyz0 index)
     stime = time.time()
-    sinput0 = ME.SparseTensor(iF0, coords=iC0).to(self.device)
+    sinput0 = ME.SparseTensor(iF0, coordinates=iC0, device=self.device)
     oF0 = self.feat_model(sinput0).F
 
-    sinput1 = ME.SparseTensor(iF1, coords=iC1).to(self.device)
+    sinput1 = ME.SparseTensor(iF1, coordinates=iC1, device=self.device)
     oF1 = self.feat_model(sinput1).F
     feat_time = time.time() - stime
 

@@ -32,7 +32,7 @@ logging.basicConfig(format='%(asctime)s %(message)s',
 
 TE_THRESH = 0.6  # m
 RE_THRESH = 5  # deg
-VISUALIZE = False
+VISUALIZE = True # AD UNDO: False
 
 
 def visualize_pair(xyz0, xyz1, T, voxel_size):

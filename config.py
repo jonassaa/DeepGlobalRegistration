@@ -5,6 +5,19 @@
 # - Christopher Choy, Jaesik Park, Vladlen Koltun, Fully Convolutional Geometric Features, ICCV 2019
 # - Christopher Choy, JunYoung Gwak, Silvio Savarese, 4D Spatio-Temporal ConvNets: Minkowski Convolutional Neural Networks, CVPR 2019
 import argparse
+import os 
+
+computer_name = os.uname()[1]
+
+if computer_name in ['ad-2021']:
+  default_kitti_dir = '/home/ad/old_drive/data/kitti/'
+  default_weights = '/home/ad/old_drive/data/FCGF/ResUNetBN2C-feat32-kitti-v0.3.pth'
+elif computer_name in ['deep3d']:
+  default_kitti_dir = '/data/amnon/datasets/kitti/'
+  default_weights = '/data/amnon/FCGF/ResUNetBN2C-feat32-kitti-v0.3.pth'
+else:
+  default_kitti_dir = None
+  default_weights = None
 
 arg_lists = []
 parser = argparse.ArgumentParser()
@@ -102,7 +115,7 @@ opt_arg.add_argument('--icp_cache_path', type=str, default="icp")
 # Misc
 misc_arg = add_argument_group('Misc')
 misc_arg.add_argument('--use_gpu', type=str2bool, default=True)
-misc_arg.add_argument('--weights', type=str, default=None)
+misc_arg.add_argument('--weights', type=str, default=default_weights)
 misc_arg.add_argument('--weights_dir', type=str, default=None)
 misc_arg.add_argument('--resume', type=str, default=None)
 misc_arg.add_argument('--resume_dir', type=str, default=None)
@@ -117,7 +130,7 @@ data_arg = add_argument_group('Data')
 data_arg.add_argument('--dataset', type=str, default='ThreeDMatchPairDataset03')
 data_arg.add_argument('--voxel_size', type=float, default=0.025)
 data_arg.add_argument('--threed_match_dir', type=str, default='.')
-data_arg.add_argument('--kitti_dir', type=str, default=None, help="Path to the KITTI odometry dataset. This path should contain <kitti_dir>/dataset/sequences.")
+data_arg.add_argument('--kitti_dir', type=str, default=default_kitti_dir, help="Path to the KITTI odometry dataset. This path should contain <kitti_dir>/dataset/sequences.")
 data_arg.add_argument('--kitti_max_time_diff', type=int, default=3, help='max time difference between pairs (non inclusive)')
 data_arg.add_argument('--kitti_date', type=str, default='2011_09_26')
 
