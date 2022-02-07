@@ -311,10 +311,10 @@ class DeepGlobalRegistration:
       print(f'=> Safeguard takes {safeguard_time:.2} s')
 
     if self.use_icp:
-      T = o3d.registration.registration_icp(
+      T = o3d.pipelines.registration.registration_icp(
           make_open3d_point_cloud(xyz0),
           make_open3d_point_cloud(xyz1), self.voxel_size * 2, T,
-          o3d.registration.TransformationEstimationPointToPoint()).transformation
+          o3d.pipelines.registration.TransformationEstimationPointToPoint()).transformation
 
     return T
 
