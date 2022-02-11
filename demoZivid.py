@@ -12,6 +12,8 @@ import open3d as o3d
 from core.deep_global_registration import DeepGlobalRegistration
 from config import get_config
 
+import zividLoader
+
 BASE_URL = "http://node2.chrischoy.org/data/"
 DOWNLOAD_LIST = [
     (BASE_URL + "datasets/registration/", "redkitchen_000.ply"),
@@ -32,26 +34,26 @@ if __name__ == '__main__':
     config.weights = DOWNLOAD_LIST[-1][-1]
 
   # preprocessing
-  pcd0 = o3d.io.read_point_cloud(config.pcd0)
-  print(config.pcd0)
-  print(np.asarray(pcd0.points))
-  '''
-  pcd0.estimate_normals()
-  pcd1 = o3d.io.read_point_cloud(config.pcd1)
+  print("=> Loading pointcloud 0")
+  pcd0 = zividLoader.zividToO3dPointCloud(subsampleFraction = 0.1)
+  print("=> Estimating normals for pointcloud 0")
+  pcd0.estimate_normals() #Dette tar lang tid
+  #TODO Use Zivid SDK to exctract normal data directly instead of estimating
+
+  print("=> Loading pointcloud 1")
+  pcd1 = zividLoader.zividToO3dPointCloud(subsampleFraction = 0.1)
+  print("=> Estimating normals for pointcloud 1")
   pcd1.estimate_normals()
 
   # registration
   dgr = DeepGlobalRegistration(config)
   T01 = dgr.register(pcd0, pcd1)
 
-  o3d.visualization.draw_geometries([pcd0, pcd1])
+  #o3d.visualization.draw_geometries([pcd0, pcd1])
 
   pcd0.transform(T01)
   print(T01)
 
-  o3d.visualization.draw_geometries([pcd0, pcd1])
+  #o3d.visualization.draw_geometries([pcd0, pcd1])
 
 
-
-https://stackoverflow.com/questions/62948421/how-to-create-point-cloud-file-ply-from-vertices-stored-as-numpy-array
-'''
