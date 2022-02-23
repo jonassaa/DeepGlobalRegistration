@@ -21,6 +21,14 @@ DOWNLOAD_LIST = [
     (BASE_URL + "projects/DGR/", "ResUNetBN2C-feat32-3dmatch-v0.05.pth")
 ]
 
+
+groundTruthTransform = np.array([[1,0,0,0],
+                                  [0,1,0,0.5],
+                                  [0,0,1,0],
+                                  [0,0,0,1]])
+
+
+
 # Check if the weights and file exist and download
 if not os.path.isfile('redkitchen_000.ply'):
   print('Downloading weights and pointcloud files...')
@@ -37,11 +45,14 @@ if __name__ == '__main__':
   print("=> Loading pointcloud 0")
   pcd0 = zividLoader.zividToO3dPointCloud(subsampleFraction = 0.1)
   print("=> Estimating normals for pointcloud 0")
+
   pcd0.estimate_normals() #Dette tar lang tid
-  #TODO Use Zivid SDK to exctract normal data directly instead of estimating
+  #TODO Use Zivid SDK to exctract normal data directly instead of estimating using o3d
 
   print("=> Loading pointcloud 1")
-  pcd1 = zividLoader.zividToO3dPointCloud(subsampleFraction = 0.1)
+  pcd1 = zividLoader.zividToO3dPointCloud(subsampleFraction = 0.2)
+  pcd1.transform(groundTruthTransform)
+
   print("=> Estimating normals for pointcloud 1")
   pcd1.estimate_normals()
 
@@ -53,6 +64,10 @@ if __name__ == '__main__':
 
   pcd0.transform(T01)
   print(T01)
+
+
+if np.allclose(T01,groundTruthTransform):
+  print("Congratulations!!!!")
 
   #o3d.visualization.draw_geometries([pcd0, pcd1])
 

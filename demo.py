@@ -8,6 +8,7 @@ import os
 from urllib.request import urlretrieve
 
 import open3d as o3d
+import numpy as np
 from core.deep_global_registration import DeepGlobalRegistration
 from config import get_config
 
@@ -17,6 +18,13 @@ DOWNLOAD_LIST = [
     (BASE_URL + "datasets/registration/", "redkitchen_010.ply"),
     (BASE_URL + "projects/DGR/", "ResUNetBN2C-feat32-3dmatch-v0.05.pth")
 ]
+
+groundTruthTransform = np.array([[1,0,0,0],
+                                  [0,1,0,0.5],
+                                  [0,0,1,0],
+                                  [0,0,0,1]])
+
+
 
 # Check if the weights and file exist and download
 if not os.path.isfile('redkitchen_000.ply'):
@@ -33,7 +41,8 @@ if __name__ == '__main__':
   # preprocessing
   pcd0 = o3d.io.read_point_cloud(config.pcd0)
   pcd0.estimate_normals()
-  pcd1 = o3d.io.read_point_cloud(config.pcd1)
+  pcd1 = o3d.io.read_point_cloud(config.pcd0)
+  pcd1.transform(groundTruthTransform)
   pcd1.estimate_normals()
 
   # registration
@@ -44,5 +53,8 @@ if __name__ == '__main__':
 
   pcd0.transform(T01)
   print(T01)
+
+  print()
+  print(groundTruthTransform)
 
   #o3d.visualization.draw_geometries([pcd0, pcd1])

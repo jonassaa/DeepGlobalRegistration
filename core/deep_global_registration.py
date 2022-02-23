@@ -54,8 +54,8 @@ def registration_ransac_based_on_correspondence(pcd0, pcd1, idx0, idx1,
 
   result = o3d.pipelines.registration.registration_ransac_based_on_correspondence(
       pcd0, pcd1, corres, distance_threshold,
-      o3d.pipelines.registration.TransformationEstimationPointToPoint(False), 4,
-      o3d.pipelines.registration.RANSACConvergenceCriteria(4000000, num_iterations))
+      estimation_method = o3d.pipelines.registration.TransformationEstimationPointToPoint(False), ransac_n = 4,
+      criteria = o3d.pipelines.registration.RANSACConvergenceCriteria(4000000, num_iterations))
 
   return result.transformation
 
@@ -296,6 +296,7 @@ class DeepGlobalRegistration:
         print('###############################################')
 
     else:
+      exit()
       # > Case 1: Safeguard RANSAC + (Optional) ICP
       pcd0 = make_open3d_point_cloud(xyz0)
       pcd1 = make_open3d_point_cloud(xyz1)

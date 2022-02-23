@@ -44,10 +44,16 @@ class IndoorPairDataset(PairDataset):
         fnames = [x.strip().split() for x in content]
         for fname in fnames:
           self.files.append([fname[0], fname[1]])
-
+ 
   def __getitem__(self, idx):
     file0 = os.path.join(self.root, self.files[idx][0])
     file1 = os.path.join(self.root, self.files[idx][1])
+
+    #Priting names of loading files
+    #print(file0)
+    #print(file1)
+    #print("\n")
+
     data0 = np.load(file0)
     data1 = np.load(file1)
     xyz0 = data0["pcd"]

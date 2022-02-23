@@ -8,11 +8,11 @@ export THREED_MATCH_DIR=${THREED_MATCH_DIR}
 export MODEL=${MODEL:-ResUNetBN2C}
 export MODEL_N_OUT=${MODEL_N_OUT:-32}
 export FCGF_WEIGHTS=${FCGF_WEIGHTS:fcgf.pth}
-export INLIER_MODEL=${INLIER_MODEL:-ResUNetBNF}
+export INLIER_MODEL=${INLIER_MODEL:-ResUNetBN2C}
 export OPTIMIZER=${OPTIMIZER:-SGD}
 export LR=${LR:-1e-1}
 export MAX_EPOCH=${MAX_EPOCH:-100}
-export BATCH_SIZE=${BATCH_SIZE:-8}
+export BATCH_SIZE=${BATCH_SIZE:-4}
 export ITER_SIZE=${ITER_SIZE:-1}
 export VOXEL_SIZE=${VOXEL_SIZE:-0.05}
 export POSITIVE_PAIR_SEARCH_VOXEL_SIZE_MULTIPLIER=${POSITIVE_PAIR_SEARCH_VOXEL_SIZE_MULTIPLIER:-4}
@@ -21,6 +21,9 @@ export EXP_GAMMA=${EXP_GAMMA:-0.99}
 export RANDOM_SCALE=${RANDOM_SCALE:-True}
 export TIME=$(date +"%Y-%m-%d_%H-%M-%S")
 export VERSION=$(git rev-parse HEAD)
+
+#Avoid warning
+export OMP_NUM_THREADS=12
 
 export OUT_DIR=${DATA_ROOT}/${DATASET}-v${VOXEL_SIZE}/${INLIER_MODEL}/${OPTIMIZER}-lr${LR}-e${MAX_EPOCH}-b${BATCH_SIZE}i${ITER_SIZE}-modelnout${MODEL_N_OUT}${PATH_POSTFIX}/${TIME}
 
@@ -36,13 +39,17 @@ echo "Host: " $(hostname) | tee -a $LOG
 echo "Conda " $(which conda) | tee -a $LOG
 echo $(pwd) | tee -a $LOG
 echo "Version: " $VERSION | tee -a $LOG
-echo "Git diff" | tee -a $LOG
-echo "" | tee -a $LOG
-git diff | tee -a $LOG
+#echo "Git diff" | tee -a $LOG
+#echo "" | tee -a $LOG
+#git diff | tee -a $LOG
 echo "" | tee -a $LOG
 nvidia-smi | tee -a $LOG
 
+
 # Training
+echo "############################################################"| tee -a $LOG
+echo "                        TRAINING"| tee -a $LOG
+echo "############################################################"| tee -a $LOG
 python train.py \
 	--weights ${FCGF_WEIGHTS} \
 	--dataset ${DATASET} \
@@ -64,6 +71,9 @@ python train.py \
 	$MISC_ARGS 2>&1 | tee -a $LOG
 
 # Test
+echo "############################################################"| tee -a $LOG
+echo "                        TESTING"| tee -a $LOG
+echo "############################################################"| tee -a $LOG
 python -m scripts.test_3dmatch \
 	$MISC_ARGS \
 	--threed_match_dir ${THREED_MATCH_DIR} \
