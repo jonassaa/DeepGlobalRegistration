@@ -115,7 +115,7 @@ opt_arg.add_argument('--icp_cache_path', type=str, default="icp")
 # Misc
 misc_arg = add_argument_group('Misc')
 misc_arg.add_argument('--use_gpu', type=str2bool, default=True)
-misc_arg.add_argument('--weights', type=str, default=default_weights)
+misc_arg.add_argument('--weights', type=str, default="/cluster/home/jonassaa/jobs/FCGF/outputs/best_val_checkpoint.pth")
 misc_arg.add_argument('--weights_dir', type=str, default=None)
 misc_arg.add_argument('--resume', type=str, default=None)
 misc_arg.add_argument('--resume_dir', type=str, default=None)
@@ -127,9 +127,10 @@ misc_arg.add_argument('--nn_max_n', type=int, default=250, help='The maximum num
 
 # Dataset specific configurations
 data_arg = add_argument_group('Data')
-data_arg.add_argument('--dataset', type=str, default='ThreeDMatchPairDataset03')
-data_arg.add_argument('--voxel_size', type=float, default=0.05)
+data_arg.add_argument('--dataset', type=str, default='ZividPairDataset')
+data_arg.add_argument('--voxel_size', type=float, default=0.005)
 data_arg.add_argument('--threed_match_dir', type=str, default='.')
+data_arg.add_argument('--zivid_dataset_dir', type=str, default='/cluster/home/jonassaa/jobs/ZividOne_v2/')
 data_arg.add_argument('--kitti_dir', type=str, default=default_kitti_dir, help="Path to the KITTI odometry dataset. This path should contain <kitti_dir>/dataset/sequences.")
 data_arg.add_argument('--kitti_max_time_diff', type=int, default=3, help='max time difference between pairs (non inclusive)')
 data_arg.add_argument('--kitti_date', type=str, default='2011_09_26')
