@@ -118,9 +118,8 @@ def weighted_procrustes(X, Y, w, eps):
 
   try:
     U, D, V = torch.svd(Sxy)
-  except:                     # torch.svd may have convergence issues for GPU and CPU.
-    print(Sxy)
-    print(Sxy.shape)
+  except: 
+    # torch.svd may have convergence issues for GPU and CPU.
     U, D, V = torch.svd(Sxy + 1e-1*Sxy.mean()*torch.rand(Sxy.shape[0],3))
 
   # Use CPU for small arrays
