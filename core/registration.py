@@ -94,6 +94,19 @@ def weighted_procrustes(X, Y, w, eps):
   Y: torch tensor N x 3
   w: torch tensor N
   """
+  # Cleaning up input data for nan, removing the same rows from all tensors
+  newX = X[~torch.any(X.isnan(),dim=1)]
+  newY = Y[~torch.any(X.isnan(),dim=1)]
+  new_w = w[~torch.any(X.isnan(),dim=1)]
+
+  newX = newX[~torch.any(newY.isnan(),dim=1)]
+  new_w = new_w[~torch.any(newY.isnan(),dim=1)]
+  newY = newY[~torch.any(newY.isnan(),dim=1)]
+
+  X = newX
+  Y = newY
+  w = new_w
+
   # https://ieeexplore.ieee.org/document/88573
   assert len(X) == len(Y)
   W1 = torch.abs(w).sum()
@@ -101,9 +114,16 @@ def weighted_procrustes(X, Y, w, eps):
   mux = (w_norm * X).sum(0, keepdim=True)
   muy = (w_norm * Y).sum(0, keepdim=True)
 
-  # Use CPU for small arrays
   Sxy = (Y - muy).t().mm(w_norm * (X - mux)).cpu().double()
-  U, D, V = Sxy.svd()
+
+  try:
+    U, D, V = torch.svd(Sxy)
+  except:                     # torch.svd may have convergence issues for GPU and CPU.
+    print(Sxy)
+    print(Sxy.shape)
+    U, D, V = torch.svd(Sxy + 1e-1*Sxy.mean()*torch.rand(Sxy.shape[0],3))
+
+  # Use CPU for small arrays
   S = torch.eye(3).double()
   if U.det() * V.det() < 0:
     S[-1, -1] = -1
